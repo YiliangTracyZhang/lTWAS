@@ -28,39 +28,14 @@ def allign_alleles(df):
     df = df[((matched_alleles_x|reversed_alleles_x)&(matched_alleles_y|reversed_alleles_y))]
 
 
-def get_files(file_name):
-    if '@' in file_name:
-        valid_files = []
-        for i in range(1, 23):
-            cur_file = file_name.replace('@', str(i))
-            if os.path.isfile(cur_file):
-                valid_files.append(cur_file)
-            else:
-                raise ValueError('No file matching {} for chr {}'.format(
-                    file_name, i))
-        return valid_files
-    else:
-        if os.path.isfile(file_name):
-            return [file_name]
-        else:
-            ValueError('No files matching {}'.format(file_name))
 
-
-def prep(bfile, partition, sumstats1, sumstats2, N1, N2):
-    bim_files = get_files(bfile + '.bim')
-    bed_files = get_files(partition)
+def prep(bfile, start, end, sumstats1, sumstats2, N1, N2):
     # read in bim files
-    bims = [pd.read_csv(f,
+    bim = pd.read_csv(bfile+'.bim',
                         header=None,
                         names=['CHR', 'SNP', 'CM', 'BP', 'A1', 'A2'],
-                        delim_whitespace=True) for f in bim_files]
-    bim = pd.concat(bims, ignore_index=True)
-
-    # read in bed files
-    beds = [pd.read_csv(f,
-                        delim_whitespace=True) for f in bed_files]
-    bed = pd.concat(beds, ignore_index=True)
-
+                        delim_whitespace=True)
+                        
     dfs = [pd.read_csv(file, delim_whitespace=True)
         for file in [sumstats1, sumstats2]]
 
