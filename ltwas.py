@@ -44,7 +44,7 @@ def pipeline(args):
         raise ValueError('--out flag points to an invalid path.')
 
     print('Preparing files for analysis...')
-    gwas_snps, N1, N2 = prep(args.bfile, args.start, args.end, args.sumstats1, args.sumstats2, args.N1, args.N2)
+    gwas_snps, N1, N2 = prep(args.bfile, args.chr, args.start, args.end, args.sumstats1, args.sumstats2, args.N1, args.N2)
     print('Calculating local TWAS...')
     out = calculate(args.bfile, gwas_snps, N1, N2, args.h1, args.h2)
     out.to_csv(args.out, sep=' ', na_rep='NA', index=False)

@@ -29,13 +29,13 @@ def allign_alleles(df):
 
 
 
-def prep(bfile, start, end, sumstats1, sumstats2, N1, N2):
+def prep(bfile, chr, start, end, sumstats1, sumstats2, N1, N2):
     # read in bim files
     bim = pd.read_csv(bfile+'.bim',
                         header=None,
                         names=['CHR', 'SNP', 'CM', 'BP', 'A1', 'A2'],
                         delim_whitespace=True)
-    bim = bim[np.logical_and(bim['BP']<=end, bim['BP']>=start)].reset_index(drop=True)
+    bim = bim[np.logical_and(np.logical_and(bim['BP']<=end, bim['BP']>=start), bim['CHR'==chr])].reset_index(drop=True)
 
     dfs = [pd.read_csv(file, delim_whitespace=True)
         for file in [sumstats1, sumstats2]]
