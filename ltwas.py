@@ -59,11 +59,11 @@ parser.add_argument('sumstats2',
 
 parser.add_argument('--bfile', required=True, type=str,
     help='Prefix for Plink .bed/.bim/.fam file.')
-parser.add_argument('--chr', required=True, type=str,
+parser.add_argument('--chr', required=True, type=int,
     help='Chromosome of the region')
-parser.add_argument('--start', required=True, type=str,
+parser.add_argument('--start', required=True, type=int,
     help='Start position of the genomic region')
-parser.add_argument('--end', required=True, type=str,
+parser.add_argument('--end', required=True, type=int,
     help='End position of the genomic region')
 parser.add_argument('--N1', type=int,
     help='N of the sumstats1 file. If not provided, this value will be inferred '
