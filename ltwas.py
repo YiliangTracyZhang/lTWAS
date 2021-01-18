@@ -71,9 +71,9 @@ parser.add_argument('--N1', type=int,
 parser.add_argument('--N2', type=int,
     help='N of the sumstats2 file. If not provided, this value will be inferred '
     'from the sumstats2 arg.')
-parser.add_argument('--h1', type=int,
+parser.add_argument('--h1', type=float,
     help='Local heritability of the first trait.')
-parser.add_argument('--h2', type=int,
+parser.add_argument('--h2', type=float,
     help='Local heritability of the second trait.')
 
 parser.add_argument('--out', required=True, type=str,
