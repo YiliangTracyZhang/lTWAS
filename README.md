@@ -32,10 +32,6 @@ python3 ltwas.py location_of_sumstats1 location_of_sumstats2 \
 
 - The `out` flag denotes the file location for the results to be outputted to.
 
-### Additional Command-Line Arguments
-
-- `--thread`: The thread number used for calculation (optional). If they are not provided, the default is the number of detected CPUs.
-
 ### Explanation of Output
 The output will be a whitespace-delimited text file, with the rows corresponding to different annotations and the columns as such:
 
