@@ -120,12 +120,11 @@ class __GenotypeArrayInMemory__(object):
         snp_getter = self.nextSNPs
         return self.__corSumVarBlocks__(block_left, c, func, snp_getter, annot)
 
-    def ldCorrVarBlocks(self, block_left, idx):
+    def ldCorrVarBlocks(self, block_left):
         '''Computes an empirical estimate of pairwise correlation '''
-        self._currentSNP = idx.index[idx][0]
         func = lambda x: self.__l2_unbiased__(x, self.n)
         snp_getter = self.nextSNPs
-        return self.__LDmatrix__(block_left, snp_getter, func, idx)
+        return self.__LDmatrix__(block_left, snp_getter, func)
 
     def ldScoreBlockJackknife(self, block_left, c, annot=None, jN=10):
         func = lambda x: np.square(x)
@@ -244,20 +243,19 @@ class __GenotypeArrayInMemory__(object):
 
         return cor_sum
 
-    def __LDmatrix__(self, block_left, snp_getter, func, idx):
+    def __LDmatrix__(self, block_left, snp_getter, func):
         '''
         LD_mat : a matrix that stores the pairwise correlation.
 
         '''
         c = 5
-        m, n = np.sum(idx), self.n
+        m, n = self.m, self.n
         LD_mat = np.zeros((m,m))       
         block_sizes = np.array(np.arange(m) - block_left)
         block_sizes = np.ceil(block_sizes / c)*c           
         
         annot = np.ones((m, 1))
         n_a = 1
-        cor_sum = np.zeros((m, n_a))
         bb = block_left > 0
         b = bb.nonzero()
         if np.any(b):
@@ -287,7 +285,6 @@ class __GenotypeArrayInMemory__(object):
                         
             # calculate ld scores
             rfuncAB = func(rfuncAB)
-            cor_sum[l_A:l_A+b, :] += np.dot(rfuncAB, annot[l_B:l_B+c, :])#
         
         # right of first window
         b0 = b
@@ -338,11 +335,8 @@ class __GenotypeArrayInMemory__(object):
 
             rfuncAB = func(rfuncAB)
             rfuncBB = func(rfuncBB)
-            cor_sum[l_A:l_A+b, :] += np.dot(rfuncAB, annot[l_B:l_B+c, :])#
-            cor_sum[l_B:l_B+c, :] += np.dot(annot[l_A:l_A+b, :].T, rfuncAB).T#
-            cor_sum[l_B:l_B+c, :] += np.dot(rfuncBB, annot[l_B:l_B+c, :])#
         
-        return cor_sum, LD_mat 
+        return LD_mat 
 
 
 class PlinkBEDFile(__GenotypeArrayInMemory__):
