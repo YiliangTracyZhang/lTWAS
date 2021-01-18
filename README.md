@@ -22,7 +22,7 @@ python3 ltwas.py location_of_sumstats1 location_of_sumstats2 \
 
 - The `N1` and `N2` arguments (optional) denote the sample sizes of the summary statistics files. If they are not provided, they will be inferred from the summary statistics files.
 
-- The `bfile` argument denotes the prefix of the `.bed/.bim/.fam` genotypic data file. Please provide only one file which contain the genomic region you are interested in.
+- The `bfile` argument denotes the prefix of the `.bed/.bim/.fam` genotypic data file. Please provide only one file which contain the genomic region you are interested in. Larger sample size in reference panel can lead to better performance of the method. (such as UKBB)
 
 - The `chr` argument denotes the chromosome of the region.
 
