@@ -1,19 +1,9 @@
-#!/usr/bin/env python
-'''
-Local TWAS
-
-lTWAS
-
-Created on 2021-1-16
-
-@author: Yiliang
-'''
-
 import argparse, os.path, sys
 import pandas as pd
 import numpy as np
 from prep import prep
 from calculate import calculate
+from collections import OrderedDict
 
 
 try:
@@ -45,8 +35,10 @@ def pipeline(args):
 
     print('Preparing files for analysis...')
     gwas_snps, N1, N2 = prep(args.bfile, args.chr, args.start, args.end, args.sumstats1, args.sumstats2, args.N1, args.N2)
-    print('Calculating local TWAS...')
-    out = calculate(args.bfile, gwas_snps, N1, N2, args.h1, args.h2)
+    m = len(gwas_snps)
+    df = pd.DataFrame(OrderedDict({"chr": [args.chr], "start":[args.start], "end": [args.end], "m":[m], "N1":[N1], "N2":[N2]}))
+    convert_dict = {"m":int, "N1":int, "N2":int}
+    out = df.astype(convert_dict)
     out.to_csv(args.out, sep=' ', na_rep='NA', index=False)
 
 
@@ -71,14 +63,9 @@ parser.add_argument('--N1', type=int,
 parser.add_argument('--N2', type=int,
     help='N of the sumstats2 file. If not provided, this value will be inferred '
     'from the sumstats2 arg.')
-parser.add_argument('--h1', type=float,
-    help='Local heritability of the first trait.')
-parser.add_argument('--h2', type=float,
-    help='Local heritability of the second trait.')
 
 parser.add_argument('--out', required=True, type=str,
     help='Location to output results.')
 
 if __name__ == '__main__':
     pipeline(parser.parse_args())
-
