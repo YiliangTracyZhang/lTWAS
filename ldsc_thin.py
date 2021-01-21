@@ -48,3 +48,83 @@ def subset_annot_file(a_df, GWAS_df, kept_cols):
 
 def remove_brackets(x):
     return x.replace('[', '').replace(']', '').strip()
+
+def _ldscore(bfile, gwas_snps):
+    '''
+    Wrapper function for estimating l1, l1^2, l2 and l4 (+ optionally standard errors) from
+    reference panel genotypes.
+
+    Annot format is
+    chr snp bp cm <annotations>
+
+    '''
+
+    snp_file, snp_obj = bfile+'.bim', ps.PlinkBIMFile
+    ind_file, ind_obj = bfile+'.fam', ps.PlinkFAMFile
+    array_file, array_obj = bfile+'.bed', ld.PlinkBEDFile
+    # read bim/snp
+    array_snps = snp_obj(snp_file)
+    # snp list
+    m = len(array_snps.IDList)
+    annot_matrix, annot_colnames, keep_snps = None, None, None,
+    n_annot = 1
+
+    keep_snps = __filter_bim__(gwas_snps, array_snps)
+
+
+    # read fam
+    array_indivs = ind_obj(ind_file)
+    n = len(array_indivs.IDList)
+    # read keep_indivs
+    keep_indivs = None
+
+    # read genotype array
+    geno_array = array_obj(array_file, n, array_snps, keep_snps=keep_snps,
+        keep_indivs=keep_indivs, mafMin=None)
+
+    #determine block widths
+
+    max_dist = 1
+    coords = np.array(array_snps.df['CM'])[geno_array.kept_snps]
+
+    block_left = ld.getBlockLefts(coords, max_dist)
+
+    scale_suffix = ''
+
+    lN = geno_array.ldScoreVarBlocks(block_left, 50, annot=annot_matrix)
+    col_prefix = "L2"
+        
+    ldscore_colnames = [col_prefix+scale_suffix]
+
+    # print .ldscore. Output columns: CHR, BP, RS, [LD Scores]
+    new_colnames = geno_array.colnames + ldscore_colnames
+    df = pd.DataFrame.from_records(np.c_[geno_array.df, lN])
+    df.columns = new_colnames
+    df.drop(['CM','MAF'], axis=1)
+
+    # print LD Score summary
+    pd.set_option('display.max_rows', 200)
+    t = df.iloc[:,4:].describe()
+
+    np.seterr(divide='ignore', invalid='ignore')  # print NaN instead of weird errors
+    # print correlation matrix including all LD Scores and sample MAF
+
+    np.seterr(divide='raise', invalid='raise')
+    return df
+
+
+def ldscore(bfile, gwas_snps):
+    df = None
+    if '@' in bfile:
+        all_dfs = []
+        for i in range(1, 23):
+            cur_bfile = bfile.replace('@', str(i))
+            all_dfs.append(_ldscore(cur_bfile, gwas_snps))
+            print('Computed LD scores for chromosome {}'.format(i))
+        df = pd.concat(all_dfs)
+    else:
+        df = _ldscore(bfile, gwas_snps)
+
+    numeric = df._get_numeric_data()
+    numeric[numeric < 0] = 0
+    return df

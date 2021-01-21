@@ -42,6 +42,10 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2):
     max_dist = 1
     block_left = ld.getBlockLefts(coords, max_dist)
 
+    lN = geno_array.ldScoreVarBlocks(block_left, 50)
+
+    max_dist = 0.03
+    block_left = ld.getBlockLefts(coords, max_dist)
     blockLD = geno_array.ldCorrVarBlocks(block_left)
     local_LD = nearest_Corr(blockLD)
 
@@ -56,7 +60,7 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2):
     tz1 = np.dot(sub_v.T, gwas_snps['Z_x'])
     tz2 = np.dot(sub_v.T, gwas_snps['Z_y'])
     y = tz1 * tz2
-
+    rho = m / sqrt(N1 * N2) * np.sum(y) / np.sum(lN)
     threshold = 1
     cur_d = sub_d[sub_d>threshold]
     cur_y = y[sub_d>threshold]
@@ -83,10 +87,10 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2):
 
     y = y[:(len(cur_d)+min_idx-1)]
     sub_d = sub_d[:(len(cur_d)+min_idx-1)]
-    sub_dsq = sub_d ** 2
-    q = (h1 * sub_d / m + 1 / N1) * (h2 * sub_d / m + 1 / N2)
+    #sub_dsq = sub_d ** 2
+    #q = (h1 * sub_d / m + 1 / N1) * (h2 * sub_d / m + 1 / N2)
     var_rho = m ** 2 * min(max_emp_theo)
-    rho = m / sqrt(N1 * N2) * (np.sum(y / q)) / (np.sum(sub_dsq / q))
+    #rho = m / sqrt(N1 * N2) * (np.sum(y / q)) / (np.sum(sub_dsq / q))
     se_rho = sqrt(var_rho)
     p_value = norm.sf(abs(rho / se_rho)) * 2
 
