@@ -46,6 +46,9 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2):
 
     max_dist = 0.03
     block_left = ld.getBlockLefts(coords, max_dist)
+
+    geno_array = array_obj(array_file, n, array_snps, keep_snps=keep_snps,
+        keep_indivs=keep_indivs, mafMin=None)
     blockLD = geno_array.ldCorrVarBlocks(block_left)
     local_LD = nearest_Corr(blockLD)
 
