@@ -44,7 +44,7 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2):
 
     lN = geno_array.ldScoreVarBlocks(block_left, 50)
 
-    max_dist = 1
+    max_dist = 0.03
     block_left = ld.getBlockLefts(coords, max_dist)
 
     geno_array = array_obj(array_file, n, array_snps, keep_snps=keep_snps,
