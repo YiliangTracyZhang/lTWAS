@@ -21,7 +21,9 @@ def nearest_Corr(input_mat):
     return A
 
 
-def calculate(bfile, gwas_snps, N1, N2, h1, h2):
+def calculate(bfile, gwas_snps, N1, N2, h1, h2, shrinkage):
+    if shrinkage == None:
+        shrinkage = 0
     m = len(gwas_snps)
 
     snp_file, snp_obj = bfile+'.bim', ps.PlinkBIMFile
@@ -44,12 +46,9 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2):
 
     lN = geno_array.ldScoreVarBlocks(block_left, 50)
 
-    max_dist = 0.03
-    block_left = ld.getBlockLefts(coords, max_dist)
-
     geno_array = array_obj(array_file, n, array_snps, keep_snps=keep_snps,
         keep_indivs=keep_indivs, mafMin=None)
-    blockLD = geno_array.ldCorrVarBlocks(block_left)
+    blockLD = geno_array.ldCorrVarBlocks(block_left, shrinkage)
     local_LD = nearest_Corr(blockLD)
 
     d, v = linalg.eigh(local_LD)
@@ -68,7 +67,7 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2):
     cur_d = sub_d[sub_d>threshold]
     cur_y = y[sub_d>threshold]
     cur_dsq = cur_d ** 2
-    denominator = (h1 * cur_d / m + 1 / N1) * (h2 * cur_d / m + 1 / N2)
+    denominator = (h1 * cur_d / m + 1 / N1) * (h2 * cur_d / m + 1 / N2) + (rho * cur_d / m) ** 2
     cur_v1 = np.sum(cur_dsq / denominator)
     cur_v2 = np.sum(cur_y / sqrt(N1 * N2) / denominator)
     cur_v3 = np.sum(cur_y ** 2 / (N1 * N2) / (denominator * cur_dsq))
@@ -79,9 +78,9 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2):
     for K in range(len(cur_d), len(sub_d)):
         eig = sub_d[K]
         tmp_y = y[K]
-        cur_v1 += eig ** 2 / ((h1 * eig / m + 1 / N1) * (h2 * eig / m + 1 / N2))
-        cur_v2 += tmp_y / sqrt(N1 * N2) / ((h1 * eig / m + 1 / N1) * (h2 * eig / m + 1 / N2))
-        cur_v3 += tmp_y ** 2 / (N1 * N2) / ((h1 * eig ** 2 / m + eig / N1) * (h2 * eig ** 2 / m + eig / N2))
+        cur_v1 += eig ** 2 / ((h1 * eig / m + 1 / N1) * (h2 * eig / m + 1 / N2) + (rho * eig / m) ** 2)
+        cur_v2 += tmp_y / sqrt(N1 * N2) / ((h1 * eig / m + 1 / N1) * (h2 * eig / m + 1 / N2) + (rho * eig / m) ** 2)
+        cur_v3 += tmp_y ** 2 / (N1 * N2) / ((h1 * eig ** 2 / m + eig / N1) * (h2 * eig ** 2 / m + eig / N2) + (rho * eig ** 2 / m) ** 2)
         emp_var.append((cur_v3 - (cur_v2 ** 2) / cur_v1) / (cur_v1 * K))
         theo_var.append(1 / cur_v1)
     
@@ -90,10 +89,10 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2):
 
     y = y[:(len(cur_d)+min_idx-1)]
     sub_d = sub_d[:(len(cur_d)+min_idx-1)]
-    #sub_dsq = sub_d ** 2
-    #q = (h1 * sub_d / m + 1 / N1) * (h2 * sub_d / m + 1 / N2)
+    sub_dsq = sub_d ** 2
+    q = (h1 * sub_d / m + 1 / N1) * (h2 * sub_d / m + 1 / N2) + (rho * sub_d / m) ** 2)
     var_rho = m ** 2 * min(max_emp_theo)
-    #rho = m / sqrt(N1 * N2) * (np.sum(y / q)) / (np.sum(sub_dsq / q))
+    rho = m / sqrt(N1 * N2) * (np.sum(y / q)) / (np.sum(sub_dsq / q))
     se_rho = sqrt(var_rho)
     p_value = norm.sf(abs(rho / se_rho)) * 2
 

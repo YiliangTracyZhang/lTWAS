@@ -46,7 +46,7 @@ def pipeline(args):
     print('Preparing files for analysis...')
     gwas_snps, N1, N2 = prep(args.bfile, args.chr, args.start, args.end, args.sumstats1, args.sumstats2, args.N1, args.N2)
     print('Calculating local TWAS...')
-    out = calculate(args.bfile, gwas_snps, N1, N2, args.h1, args.h2)
+    out = calculate(args.bfile, gwas_snps, N1, N2, args.h1, args.h2, args.shrinkage)
     out.to_csv(args.out, sep=' ', na_rep='NA', index=False)
 
 
@@ -75,6 +75,8 @@ parser.add_argument('--h1', type=float,
     help='Local heritability of the first trait.')
 parser.add_argument('--h2', type=float,
     help='Local heritability of the second trait.')
+parser.add_argument('--shrinkage', type=float,
+    help='Shrinkage for LD matrix estimation.')
 
 parser.add_argument('--out', required=True, type=str,
     help='Location to output results.')
