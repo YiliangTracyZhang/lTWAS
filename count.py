@@ -37,7 +37,7 @@ def pipeline(args):
     gwas_snps, N1, N2 = prep(args.bfile, args.chr, args.start, args.end, args.sumstats1, args.sumstats2, args.N1, args.N2)
     m = len(gwas_snps)
     df = pd.DataFrame(OrderedDict({"chr": [args.chr], "start":[args.start], "end": [args.end], "m":[m], "N1":[N1], "N2":[N2]}))
-    convert_dict = {"m":int, "N1":int, "N2":int}
+    convert_dict = {"chr":int, "start":int, "end":int, "m":int, "N1":int, "N2":int}
     out = df.astype(convert_dict)
     out.to_csv(args.out, sep=' ', na_rep='NA', index=False)
 
