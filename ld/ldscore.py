@@ -346,7 +346,7 @@ class __GenotypeArrayInMemory__(object):
             s += 1/(i)
         s = 1 / s
         theta = s / (2 * n + s)
-        LD_mat += (1 - theta) ** 2
+        LD_mat *= (1 - theta) ** 2
 
         for i in range(m):
             LD_mat[i][i] += (theta/2) * (1-theta / 2)
