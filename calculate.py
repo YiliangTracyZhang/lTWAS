@@ -47,7 +47,7 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2, shrinkage):
     lN = geno_array.ldScoreVarBlocks(block_left, 50)
 
     geno_array._currentSNP = 0
-    blockLD = geno_array.ldCorrVarBlocks(block_left, shrinkage)
+    blockLD = geno_array.ldCorrVarBlocks(block_left, shrinkage, coords)
     local_LD = nearest_Corr(blockLD)
 
     d, v = linalg.eigh(local_LD)

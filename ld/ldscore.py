@@ -120,11 +120,11 @@ class __GenotypeArrayInMemory__(object):
         snp_getter = self.nextSNPs
         return self.__corSumVarBlocks__(block_left, c, func, snp_getter, annot)
 
-    def ldCorrVarBlocks(self, block_left, shrinkage):
+    def ldCorrVarBlocks(self, block_left, shrinkage, coords):
         '''Computes an empirical estimate of pairwise correlation '''
         func = lambda x: self.__l2_unbiased__(x, self.n)
         snp_getter = self.nextSNPs
-        return self.__LDmatrix__(block_left, snp_getter, func, shrinkage)
+        return self.__LDmatrix__(block_left, snp_getter, func, shrinkage, coords)
 
     def ldScoreBlockJackknife(self, block_left, c, annot=None, jN=10):
         func = lambda x: np.square(x)
@@ -243,19 +243,18 @@ class __GenotypeArrayInMemory__(object):
 
         return cor_sum
 
-    def __LDmatrix__(self, block_left, snp_getter, func, shrinkage):
+    def __LDmatrix__(self, block_left, snp_getter, func, shrinkage, coords):
         '''
         LD_mat : a matrix that stores the pairwise correlation.
 
         '''
         c = 5
         m, n = self.m, self.n
+        coeff = shrinkage * 11418 * 2 / n
         LD_mat = np.zeros((m,m))       
         block_sizes = np.array(np.arange(m) - block_left)
         block_sizes = np.ceil(block_sizes / c)*c           
         
-        annot = np.ones((m, 1))
-        n_a = 1
         bb = block_left > 0
         b = bb.nonzero()
         if np.any(b):
@@ -268,8 +267,8 @@ class __GenotypeArrayInMemory__(object):
             b = m
         l_A = 0  # l_A := index of leftmost SNP in matrix A
         
-        A = snp_getter(b)
-
+        A = snp_getter(b, normalize=False)
+        coords_A = coords[l_A:l_A+b]
         rfuncAB = np.zeros((b, c))
         rfuncBB = np.zeros((c, c))
         
@@ -277,14 +276,16 @@ class __GenotypeArrayInMemory__(object):
         # chunk inside of block
         for l_B in range(0, b, c):  # l_B := index of leftmost SNP in matrix B
             B = A[:, l_B:l_B+c]
+            coords_B = coords_A[l_B:l_B+c]
             # pairwise correlation
             np.dot(A.T, B / n, out=rfuncAB)
-            
+            for ii in range(b):
+                for jj in range(c):
+                    distance = np.abs(coords_A[ii] - coords_B[jj])
+                    rfuncAB[ii, jj] *= np.exp(-distance * coeff)
             # store the correlation in matrix 
             LD_mat[0:b,l_B:l_B+c] = rfuncAB #ld matrix  
                         
-            # calculate ld scores
-            rfuncAB = func(rfuncAB)
         
         # right of first window
         b0 = b
@@ -302,12 +303,15 @@ class __GenotypeArrayInMemory__(object):
                 # block_size can't be less than c unless it is zero
                 # both of these things make sense
                 A = np.hstack((A[:, old_b-b+c:old_b], B))
+                coords_A = np.hstack([coords_A[old_b-b+c:old_b], coords_B])
                 l_A += old_b-b+c
             elif l_B == b0 and b > 0:
                 A = A[:, b0-b:b0]
+                coords_A = coords_A[b0-b:b0]
                 l_A = b0-b
             elif b == 0:  # no SNPs to left in window, e.g., after a sequence gap
                 A = np.array(()).reshape((n, 0))
+                coords_A = np.array([])
                 l_A = l_B
             if l_B == md:
                 c = m - md
@@ -316,25 +320,36 @@ class __GenotypeArrayInMemory__(object):
             if b != old_b:
                 rfuncAB = np.zeros((b, c))
 
-            B = snp_getter(c) # read next c snps
-            
-            p1 = np.all(annot[l_A:l_A+b, :] == 0)
-            p2 = np.all(annot[l_B:l_B+c, :] == 0)
-            if p1 and p2:
-                continue
+            B = snp_getter(c, normalize=False) # read next c snps
+            coords_B = coords[l_B:l_B+c]
             
             ## get pairwise correlation
             np.dot(A.T, B / n, out=rfuncAB)
             np.dot(B.T, B / n, out=rfuncBB) 
+
+            for ii in range(b):
+                for jj in range(c):
+                    distance = np.abs(coords_A[ii] - coords_B[jj])
+                    rfuncAB[ii, jj] *= np.exp(-distance * coeff)
+            for ii in range(c):
+                for jj in range(c):
+                    distance = np.abs(coords_B[ii] - coords_B[jj])
+                    rfuncBB[ii, jj] *= np.exp(-distance * coeff)
             
             ### store the output in matrix 
             LD_mat[l_A:l_A+b,l_B:l_B+c] = rfuncAB  #ld matrix
             LD_mat[l_B:l_B+c,l_A:l_A+b] = rfuncAB.T #ld matrix
             LD_mat[l_B:l_B+c,l_B:l_B+c] = rfuncBB  #ld matrix              
-                        
+        
+        s = 0
+        for i in range(1, 2 * n):
+            s += 1/(i)
+        s = 1 / s
+        theta = s / (2 * n + s)
+        LD_mat += (1 - theta) ** 2
 
-            rfuncAB = func(rfuncAB)
-            rfuncBB = func(rfuncBB)
+        for i in range(m):
+            LD_mat[m][m] += (theta/2) * (1-theta / 2)
         
         return LD_mat 
 
@@ -510,7 +525,7 @@ class PlinkBEDFile(__GenotypeArrayInMemory__):
                 Y[:, j] = (newsnp - avg) / denom
             
             else:
-                Y[:, j] = newsnp
+                Y[:, j] = newsnp - avg
 
         self._currentSNP += b
         return Y
