@@ -120,11 +120,11 @@ class __GenotypeArrayInMemory__(object):
         snp_getter = self.nextSNPs
         return self.__corSumVarBlocks__(block_left, c, func, snp_getter, annot)
 
-    def ldCorrVarBlocks(self, block_left):
+    def ldCorrVarBlocks(self, block_left, shrinkage):
         '''Computes an empirical estimate of pairwise correlation '''
         func = lambda x: self.__l2_unbiased__(x, self.n)
         snp_getter = self.nextSNPs
-        return self.__LDmatrix__(block_left, snp_getter, func)
+        return self.__LDmatrix__(block_left, snp_getter, func, shrinkage)
 
     def ldScoreBlockJackknife(self, block_left, c, annot=None, jN=10):
         func = lambda x: np.square(x)
@@ -243,7 +243,7 @@ class __GenotypeArrayInMemory__(object):
 
         return cor_sum
 
-    def __LDmatrix__(self, block_left, snp_getter, func):
+    def __LDmatrix__(self, block_left, snp_getter, func, shrinkage):
         '''
         LD_mat : a matrix that stores the pairwise correlation.
 
@@ -454,7 +454,7 @@ class PlinkBEDFile(__GenotypeArrayInMemory__):
 
         return (y, m_poly, n, kept_snps, freq)
 
-    def nextSNPs(self, b, minorRef=None):
+    def nextSNPs(self, b, minorRef=None, normalize=True):
         '''
         Unpacks the binary array of genotypes and returns an n x b matrix of floats of
         normalized genotypes for the next b SNPs, where n := number of samples.
@@ -499,14 +499,18 @@ class PlinkBEDFile(__GenotypeArrayInMemory__):
             ii = newsnp != 9
             avg = np.mean(newsnp[ii])
             newsnp[np.logical_not(ii)] = avg
-            denom = np.std(newsnp)
-            if denom == 0:
-                denom = 1
+            if normalize:
+                denom = np.std(newsnp)
+                if denom == 0:
+                    denom = 1
 
-            if minorRef is not None and self.freq[self._currentSNP + j] > 0.5:
-                denom = denom*-1
+                if minorRef is not None and self.freq[self._currentSNP + j] > 0.5:
+                    denom = denom*-1
 
-            Y[:, j] = (newsnp - avg) / denom
+                Y[:, j] = (newsnp - avg) / denom
+            
+            else:
+                Y[:, j] = newsnp
 
         self._currentSNP += b
         return Y

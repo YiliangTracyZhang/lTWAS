@@ -46,8 +46,7 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2, shrinkage):
 
     lN = geno_array.ldScoreVarBlocks(block_left, 50)
 
-    geno_array = array_obj(array_file, n, array_snps, keep_snps=keep_snps,
-        keep_indivs=keep_indivs, mafMin=None)
+    geno_array._currentSNP = 0
     blockLD = geno_array.ldCorrVarBlocks(block_left, shrinkage)
     local_LD = nearest_Corr(blockLD)
 
@@ -90,7 +89,7 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2, shrinkage):
     y = y[:(len(cur_d)+min_idx-1)]
     sub_d = sub_d[:(len(cur_d)+min_idx-1)]
     sub_dsq = sub_d ** 2
-    q = (h1 * sub_d / m + 1 / N1) * (h2 * sub_d / m + 1 / N2) + (rho * sub_d / m) ** 2)
+    q = (h1 * sub_d / m + 1 / N1) * (h2 * sub_d / m + 1 / N2) + (rho * sub_d / m) ** 2
     var_rho = m ** 2 * min(max_emp_theo)
     rho = m / sqrt(N1 * N2) * (np.sum(y / q)) / (np.sum(sub_dsq / q))
     se_rho = sqrt(var_rho)
