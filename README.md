@@ -14,6 +14,7 @@ python3 ltwas.py location_of_sumstats1 location_of_sumstats2 \
 --end end_genomic_position_of_the_region\
 --h1 local_heritability_of_trait1\
 --h2 local_heritability_of_trait2\
+--shrinkage parameter_for_LD_matrix_shrinkage
 --out location_of_results
 ```
 ### Explanation of Command-Line Arguments
@@ -29,6 +30,8 @@ python3 ltwas.py location_of_sumstats1 location_of_sumstats2 \
 - The `start` and `end` denote the start and the end genomic position of the region, respectively.
 
 - The `h1` and `h2` denote the local heritability of trait1 and trait2 for the region, respectively.	
+
+- The `shrinkage` (optional) denotes the parameter for LD matrix shrinkage. The default is zero which means no shrinkage for LD matrix estimation. When the parameter is set as 1, the shrinkage is same with the [original paper](https://projecteuclid.org/download/pdfview_1/euclid.aoas/1287409368). The more the value is, the more the shrinkage is applied.
 
 - The `out` flag denotes the file location for the results to be outputted to.
 
