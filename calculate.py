@@ -61,6 +61,8 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2, shrinkage):
     tz1 = np.dot(sub_v.T, gwas_snps['Z_x'])
     tz2 = np.dot(sub_v.T, gwas_snps['Z_y'])
     y = tz1 * tz2
+    y1 = tz1 ** 2
+    y2 = tz2 ** 2
     #rho = m / sqrt(N1 * N2) * np.sum(y) / np.sum(lN)
     threshold = 1
     cur_d = sub_d[sub_d>threshold]
@@ -87,6 +89,8 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2, shrinkage):
     min_idx = np.argmin(max_emp_theo)
 
     y = y[:(len(cur_d)+min_idx-1)]
+    y1 = y1[:(len(cur_d)+min_idx-1)]
+    y2 = y2[:(len(cur_d)+min_idx-1)]
     sub_d = sub_d[:(len(cur_d)+min_idx-1)]
     sub_dsq = sub_d ** 2
     q = (h1 * sub_d / m + 1 / N1) * (h2 * sub_d / m + 1 / N2)# + (rho * sub_d / m) ** 2
@@ -94,8 +98,8 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2, shrinkage):
     rho = m / sqrt(N1 * N2) * (np.sum(y / q)) / (np.sum(sub_dsq / q))
     se_rho = sqrt(var_rho)
     p_value = norm.sf(abs(rho / se_rho)) * 2
-    h1 = m / sqrt(N1 * N2) * (np.sum((tz1 * tz1 - sub_d) / q)) / (np.sum(sub_dsq / q))
-    h2 = m / sqrt(N1 * N2) * (np.sum((tz2 * tz2 - sub_d) / q)) / (np.sum(sub_dsq / q))
+    h1 = m / sqrt(N1 * N2) * (np.sum((y1 - sub_d) / q)) / (np.sum(sub_dsq / q))
+    h2 = m / sqrt(N1 * N2) * (np.sum((y2 - sub_d) / q)) / (np.sum(sub_dsq / q))
     corr = rho / sqrt(h1 * h2)
 
     df = pd.DataFrame(OrderedDict({"rho":[rho], "corr":[corr], "h2_1":[h1], "h2_2":[h2], "var":[var_rho], "p":[p_value], "m":[m]}))
