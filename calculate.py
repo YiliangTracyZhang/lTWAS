@@ -94,7 +94,8 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2, shrinkage):
     rho = m / sqrt(N1 * N2) * (np.sum(y / q)) / (np.sum(sub_dsq / q))
     se_rho = sqrt(var_rho)
     p_value = norm.sf(abs(rho / se_rho)) * 2
-
+    h1 = m / sqrt(N1 * N2) * (np.sum((tz1 * tz1 - sub_d) / q)) / (np.sum(sub_dsq / q))
+    h2 = m / sqrt(N1 * N2) * (np.sum((tz2 * tz2 - sub_d) / q)) / (np.sum(sub_dsq / q))
     corr = rho / sqrt(h1 * h2)
 
     df = pd.DataFrame(OrderedDict({"rho":[rho], "corr":[corr], "h2_1":[h1], "h2_2":[h2], "var":[var_rho], "p":[p_value], "m":[m]}))
