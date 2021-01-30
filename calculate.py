@@ -44,7 +44,7 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2, shrinkage):
     max_dist = 1
     block_left = ld.getBlockLefts(coords, max_dist)
 
-    lN = geno_array.ldScoreVarBlocks(block_left, 50)
+    #lN = geno_array.ldScoreVarBlocks(block_left, 50)
 
     geno_array._currentSNP = 0
     blockLD = geno_array.ldCorrVarBlocks(block_left, shrinkage, coords)
@@ -61,12 +61,12 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2, shrinkage):
     tz1 = np.dot(sub_v.T, gwas_snps['Z_x'])
     tz2 = np.dot(sub_v.T, gwas_snps['Z_y'])
     y = tz1 * tz2
-    rho = m / sqrt(N1 * N2) * np.sum(y) / np.sum(lN)
+    #rho = m / sqrt(N1 * N2) * np.sum(y) / np.sum(lN)
     threshold = 1
     cur_d = sub_d[sub_d>threshold]
     cur_y = y[sub_d>threshold]
     cur_dsq = cur_d ** 2
-    denominator = (h1 * cur_d / m + 1 / N1) * (h2 * cur_d / m + 1 / N2) + (rho * cur_d / m) ** 2
+    denominator = (h1 * cur_d / m + 1 / N1) * (h2 * cur_d / m + 1 / N2)# + (rho * cur_d / m) ** 2
     cur_v1 = np.sum(cur_dsq / denominator)
     cur_v2 = np.sum(cur_y / sqrt(N1 * N2) / denominator)
     cur_v3 = np.sum(cur_y ** 2 / (N1 * N2) / (denominator * cur_dsq))
@@ -77,9 +77,9 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2, shrinkage):
     for K in range(len(cur_d), len(sub_d)):
         eig = sub_d[K]
         tmp_y = y[K]
-        cur_v1 += eig ** 2 / ((h1 * eig / m + 1 / N1) * (h2 * eig / m + 1 / N2) + (rho * eig / m) ** 2)
-        cur_v2 += tmp_y / sqrt(N1 * N2) / ((h1 * eig / m + 1 / N1) * (h2 * eig / m + 1 / N2) + (rho * eig / m) ** 2)
-        cur_v3 += tmp_y ** 2 / (N1 * N2) / ((h1 * eig ** 2 / m + eig / N1) * (h2 * eig ** 2 / m + eig / N2) + (rho * eig ** 2 / m) ** 2)
+        cur_v1 += eig ** 2 / ((h1 * eig / m + 1 / N1) * (h2 * eig / m + 1 / N2))# + (rho * eig / m) ** 2)
+        cur_v2 += tmp_y / sqrt(N1 * N2) / ((h1 * eig / m + 1 / N1) * (h2 * eig / m + 1 / N2))# + (rho * eig / m) ** 2)
+        cur_v3 += tmp_y ** 2 / (N1 * N2) / ((h1 * eig ** 2 / m + eig / N1) * (h2 * eig ** 2 / m + eig / N2))# + (rho * eig ** 2 / m) ** 2)
         emp_var.append((cur_v3 - (cur_v2 ** 2) / cur_v1) / (cur_v1 * K))
         theo_var.append(1 / cur_v1)
     
@@ -89,7 +89,7 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2, shrinkage):
     y = y[:(len(cur_d)+min_idx-1)]
     sub_d = sub_d[:(len(cur_d)+min_idx-1)]
     sub_dsq = sub_d ** 2
-    q = (h1 * sub_d / m + 1 / N1) * (h2 * sub_d / m + 1 / N2) + (rho * sub_d / m) ** 2
+    q = (h1 * sub_d / m + 1 / N1) * (h2 * sub_d / m + 1 / N2)# + (rho * sub_d / m) ** 2
     var_rho = m ** 2 * min(max_emp_theo)
     rho = m / sqrt(N1 * N2) * (np.sum(y / q)) / (np.sum(sub_dsq / q))
     se_rho = sqrt(var_rho)
