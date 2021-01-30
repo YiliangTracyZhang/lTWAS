@@ -29,7 +29,7 @@ python3 ltwas.py location_of_sumstats1 location_of_sumstats2 \
 
 - The `start` and `end` denote the start and the end genomic position of the region, respectively.
 
-- The `h1` and `h2` denote the local heritability of trait1 and trait2 for the region, respectively.	
+- The `h1` and `h2` denote the expected local heritability of trait1 and trait2 corresponding to the size of the genomic region, respectively. These are used in the calculation of weights.
 
 - The `shrinkage` (optional) denotes the parameter for LD matrix shrinkage. The default is zero which means no shrinkage for LD matrix estimation. When the parameter is set as 1, the shrinkage is same with the [original paper](https://projecteuclid.org/download/pdfview_1/euclid.aoas/1287409368). The more the value is, the more the shrinkage is applied.
 
@@ -40,8 +40,8 @@ The output will be a whitespace-delimited text file, with the rows corresponding
 
 - `rho`: The estimation of local genetic covariance.
 - `corr`: The estimation of local genetic correlation.
-- `h2_1`: Local heritability of the first trait.
-- `h2_2`: Local heritability of the second trait.
+- `h2_1`: Estimated local heritability of the first trait.
+- `h2_2`: Estimated local heritability of the second trait.
 - `var`: The variance of the estimation of local genetic covariance.
 - `p`: The p value of local genetic covariance.
 - `m`: The number of SNPs involved in the estimation of local genetic covariance in the genomic region.
