@@ -98,14 +98,15 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2, shrinkage):
     rho = m / sqrt(N1 * N2) * (np.sum(y / q)) / (np.sum(sub_dsq / q))
     se_rho = sqrt(var_rho)
     p_value = norm.sf(abs(rho / se_rho)) * 2
-    h1 = m / sqrt(N1 * N2) * (np.sum((y1 - sub_d) / q)) / (np.sum(sub_dsq / q))
-    h2 = m / sqrt(N1 * N2) * (np.sum((y2 - sub_d) / q)) / (np.sum(sub_dsq / q))
-    if h1 > 0 and h2 > 0:
-        corr = rho / sqrt(h1 * h2)
+    h1_est = m / sqrt(N1 * N2) * (np.sum((y1 - sub_d) / q)) / (np.sum(sub_dsq / q))
+    h2_est = m / sqrt(N1 * N2) * (np.sum((y2 - sub_d) / q)) / (np.sum(sub_dsq / q))
+    if h1_est > 0 and h2_est > 0:
+        corr_est = rho / sqrt(h1_est * h2_est)
     else:
-        corr = np.nan
+        corr_est = np.nan
+    corr = rho / sqrt(h1 * h2)
 
-    df = pd.DataFrame(OrderedDict({"rho":[rho], "corr":[corr], "h2_1":[h1], "h2_2":[h2], "var":[var_rho], "p":[p_value], "m":[m]}))
+    df = pd.DataFrame(OrderedDict({"rho":[rho], "corr":[corr], "corr_est":[corr_est], "h2_1":[h1], "h2_2":[h2], "h1_est":[h1_est], "h2_est":[h2_est], "var":[var_rho], "p":[p_value], "m":[m]}))
     convert_dict = {"m":int}
     df = df.astype(convert_dict)
     return df
