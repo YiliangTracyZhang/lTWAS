@@ -100,7 +100,10 @@ def calculate(bfile, gwas_snps, N1, N2, h1, h2, shrinkage):
     p_value = norm.sf(abs(rho / se_rho)) * 2
     h1 = m / sqrt(N1 * N2) * (np.sum((y1 - sub_d) / q)) / (np.sum(sub_dsq / q))
     h2 = m / sqrt(N1 * N2) * (np.sum((y2 - sub_d) / q)) / (np.sum(sub_dsq / q))
-    corr = rho / sqrt(h1 * h2)
+    if h1 > 0 and h2 > 0:
+        corr = rho / sqrt(h1 * h2)
+    else:
+        corr = np.nan
 
     df = pd.DataFrame(OrderedDict({"rho":[rho], "corr":[corr], "h2_1":[h1], "h2_2":[h2], "var":[var_rho], "p":[p_value], "m":[m]}))
     convert_dict = {"m":int}
